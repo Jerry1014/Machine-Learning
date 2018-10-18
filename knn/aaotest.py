@@ -8,6 +8,10 @@ import pytesseract
 import numpy
 
 
+# 用knn进行判断时，选择的k
+the_k_of_knn = 5
+
+
 def interference_point(x_s, y_s):
     """点降噪"""
     img = cv2.imread('vc.jpg')
@@ -33,7 +37,7 @@ def interference_point(x_s, y_s):
 
 
 def get_yzm():
-    # 请求验证码
+    """请求验证码"""
     try:
         yzm = requests.get("https://zhjw.neu.edu.cn/ACTIONVALIDATERANDOMPICTURE.APPPROCESS")
     except:
@@ -75,6 +79,7 @@ def get_yzm():
 
 
 def get_train_yzm():
+    """用来爬取验证码图片，分割，用ocr识别并标记"""
     # 创建保存目录
     for i in list(range(10))+['+', '++']:
         if not os.path.exists('D:\\tem\\' + str(i)):
@@ -98,6 +103,7 @@ def get_train_yzm():
 
 
 def train_knn():
+    """将准备好的图片训练集做一次整理，并将结果写到data.npz"""
     train = numpy.empty((0, 900))
     train_labels = numpy.empty((0, 1))
     train.dtype == numpy.float32
@@ -110,32 +116,56 @@ def train_knn():
             img = cv2.imread('D:\\tem\\' + str(i) + '\\' + j)
             train = numpy.append(train, img.reshape((1, -1)).astype(numpy.int), 0).astype(numpy.float32)
 
+    # 保存已经处理好的训练集
     numpy.savez('data.npz', train=train, train_labels=train_labels)
 
 
 def test_knn():
+    """knn训练完成之后的成功率测试"""
+    correct_num = 0
     for i in range(test_repeat_num):
         for image_tem in get_yzm():
             char = pytesseract.image_to_string(image_tem, config='--psm 10')
-            cv2.imshow('result', image_tem)
-            cv2.waitKey(0)
             tem = numpy.repeat(image_tem, 3).reshape((1,-1)).astype(numpy.float32)
-            ret, result, *_ = knn.findNearest(tem, k=2)
-            print(all_char[int(result[0])])
+            ret, result, *_ = knn.findNearest(tem, k=the_k_of_knn)
+            # 将knn模型识别的结果与ocr的作比较
+            if all_char[int(result[0])] == char:
+                correct_num += 1
+            else:
+                cv2.imshow('result', image_tem)
+                char = cv2.waitKey(5)
+                if char > 48:
+                    char -= 49
+                elif char == 43:
+                    char = 7
+                elif char == 42:
+                    char = 8
+                else:
+                    char = -1
+
+                if result[0] == char:
+                    correct_num += 1
+        print("已完成",i,"/",test_repeat_num)
+
+    print("正确率为",correct_num/(test_repeat_num*3)*100.0,'%')
+    print("如果正确率过低，可尝试提高训练集的数量和质量，或者提高the_k_of_knn的值")
 
 
 if __name__ == '__main__':
-    # 每次爬取的验证码数量
+    # 每次运行get_train_yzm爬取的验证码数量（张）
     repeat_num = 100
-    # 用来验证的验证码数量
-    test_repeat_num = 10
+
     # 定义全部的符号，教务处只有以下符号，因目录问题，用++代表*
     all_char = ['1', '2', '3', '4', '5', '6', '7', '+', '++']
 
+    # 利用设置好的训练集，训练knn模型
     knn = cv2.ml.KNearest_create()
     with numpy.load('data.npz') as data:
         train = data['train']
         train_labels = data['train_labels']
     knn.train(train, cv2.ml.ROW_SAMPLE, train_labels)
+
+    # 每次运行test_knn，爬取的验证码数量（张）
+    test_repeat_num = 50
 
     test_knn()
