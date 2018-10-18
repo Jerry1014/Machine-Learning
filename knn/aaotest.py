@@ -133,7 +133,8 @@ def test_knn():
                 correct_num += 1
             else:
                 cv2.imshow('result', image_tem)
-                char = cv2.waitKey(5)
+                char = cv2.waitKey(0)
+                cv2.destroyAllWindows()
                 if char > 48:
                     char -= 49
                 elif char == 43:
