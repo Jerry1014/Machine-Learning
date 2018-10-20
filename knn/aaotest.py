@@ -1,39 +1,33 @@
 # -*- coding: utf-8 -*-
-import requests
 import os
 import random
 from time import sleep
+
 import cv2
-import pytesseract
 import numpy
+import pytesseract
+import requests
 
 
-# 用knn进行判断时，选择的k
-the_k_of_knn = 5
-
-
-def interference_point(x_s, y_s):
+def interference_point(x_s, y_s, img):
     """点降噪"""
-    img = cv2.imread('vc.jpg')
-    # todo 判断图片的长宽度下限
     height, width = img.shape[:2]
 
     for y in range(y_s, width - 1):
         for x in range(x_s, height - 1):
-            cur_pixel = img[x, y].max()  # 当前像素点的值
+            cur_pixel = img[x, y]  # 当前像素点的值
             # 具备9领域条件的
-            sum = int(img[x - 1, y - 1].max()) \
-              + int(img[x - 1, y].max()) \
-              + int(img[x - 1, y + 1].max()) \
-              + int(img[x, y - 1].max()) \
+            sum = int(img[x - 1, y - 1]) \
+              + int(img[x - 1, y]) \
+              + int(img[x - 1, y + 1]) \
+              + int(img[x, y - 1]) \
               + int(cur_pixel) \
-              + int(img[x, y + 1].max()) \
-              + int(img[x + 1, y - 1].max()) \
-              + int(img[x + 1, y].max()) \
-              + int(img[x + 1, y + 1].max())
+              + int(img[x, y + 1]) \
+              + int(img[x + 1, y - 1]) \
+              + int(img[x + 1, y]) \
+              + int(img[x + 1, y + 1])
             if sum >= 6 * 245:
                 img[x, y] = 255
-    cv2.imwrite('vc.jpg', img)
 
 
 def get_yzm():
@@ -62,7 +56,7 @@ def get_yzm():
         for x in range(0, h):
             if y < width_q or y > w - width_q or x < height_q or x > h - height_q:
                 im[x, y] = 255
-    interference_point(width_q, height_q)
+    interference_point(width_q, height_q, im)
 
     # 分割验证码
     yzm_images = list()
@@ -104,16 +98,17 @@ def get_train_yzm():
 
 def train_knn():
     """将准备好的图片训练集做一次整理，并将结果写到data.npz"""
-    train = numpy.empty((0, 900))
+    train = numpy.empty((0, 300))
     train_labels = numpy.empty((0, 1))
     train.dtype == numpy.float32
     train_labels.dtype == numpy.int
 
     for i in all_char:
         all_file = os.listdir('D:\\tem\\' + str(i))
-        train_labels = numpy.append(train_labels, numpy.repeat(numpy.array([all_char.index(i)]), len(all_file))).astype(numpy.int)
+        train_labels = numpy.append(train_labels, numpy.repeat(numpy.array([all_char.index(i)]), len(all_file)))\
+            .astype(numpy.int)
         for j in all_file:
-            img = cv2.imread('D:\\tem\\' + str(i) + '\\' + j)
+            img = cv2.imread('D:\\tem\\' + str(i) + '\\' + j, flags=cv2.IMREAD_GRAYSCALE)
             train = numpy.append(train, img.reshape((1, -1)).astype(numpy.int), 0).astype(numpy.float32)
 
     # 保存已经处理好的训练集
@@ -126,8 +121,7 @@ def test_knn():
     for i in range(test_repeat_num):
         for image_tem in get_yzm():
             char = pytesseract.image_to_string(image_tem, config='--psm 10')
-            tem = numpy.repeat(image_tem, 3).reshape((1,-1)).astype(numpy.float32)
-            ret, result, *_ = knn.findNearest(tem, k=the_k_of_knn)
+            ret, result, *_ = knn.findNearest(image_tem.reshape(1,-1).astype(numpy.float32), k=the_k_of_knn)
             # 将knn模型识别的结果与ocr的作比较
             if all_char[int(result[0])] == char:
                 correct_num += 1
@@ -146,7 +140,7 @@ def test_knn():
 
                 if result[0] == char:
                     correct_num += 1
-        print("已完成",i,"/",test_repeat_num)
+        print("已完成", i, "/", test_repeat_num)
 
     print("正确率为",correct_num/(test_repeat_num*3)*100.0,'%')
     print("如果正确率过低，可尝试提高训练集的数量和质量，或者提高the_k_of_knn的值")
@@ -156,8 +150,14 @@ if __name__ == '__main__':
     # 每次运行get_train_yzm爬取的验证码数量（张）
     repeat_num = 100
 
+    # 爬取验证码作为训练集
+    # get_train_yzm()
+
     # 定义全部的符号，教务处只有以下符号，因目录问题，用++代表*
     all_char = ['1', '2', '3', '4', '5', '6', '7', '+', '++']
+
+    # 用已爬好的验证码设置训练数据
+    train_knn()
 
     # 利用设置好的训练集，训练knn模型
     knn = cv2.ml.KNearest_create()
@@ -168,5 +168,8 @@ if __name__ == '__main__':
 
     # 每次运行test_knn，爬取的验证码数量（张）
     test_repeat_num = 50
+
+    # 用knn进行判断时，选择的k
+    the_k_of_knn = 5
 
     test_knn()
