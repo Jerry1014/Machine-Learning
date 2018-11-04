@@ -1,8 +1,5 @@
 import tensorflow as tf
 import numpy
-import cv2
-import os
-
 
 def new_weights(shape):
     return tf.Variable(tf.truncated_normal(shape, stddev=0.1))

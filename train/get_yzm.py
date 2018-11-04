@@ -31,13 +31,19 @@ def interference_point(x_s, y_s, img):
 
 
 def get_yzm():
+
     """请求验证码"""
     try:
         yzm = requests.get("https://zhjw.neu.edu.cn/ACTIONVALIDATERANDOMPICTURE.APPPROCESS")
     except:
         sleep(10)
+        return None
+
     if yzm.status_code != 200:
         sleep(10)
+        yzm = requests.get("https://zhjw.neu.edu.cn/ACTIONVALIDATERANDOMPICTURE.APPPROCESS")
+    if yzm.status_code != 200:
+        return None
 
     with open('vc.jpg', 'wb') as f:
         f.write(yzm.content)
@@ -68,12 +74,17 @@ def get_yzm():
         x_r += int(w / 4)
 
     os.remove('vc.jpg')
-    sleep(1)
+    sleep(0.5)
     return yzm_images
 
 
 def get_train_yzm(repeat_num):
     """用来爬取验证码图片，分割，用ocr识别并标记"""
+    knn = cv2.ml.KNearest_create()
+    with numpy.load(destination_path + 'basic.npz') as data:
+        train = data['train']
+        train_labels = data['train_labels']
+    knn.train(train, cv2.ml.ROW_SAMPLE, train_labels)
     # 创建保存目录
     for i in all_char:
         if not os.path.exists(train_save_path + str(i)):
@@ -81,15 +92,23 @@ def get_train_yzm(repeat_num):
 
     for i in range(repeat_num):
         for image_tem in get_yzm():
-            char = pytesseract.image_to_string(image_tem, config='--psm 10')
-            if char not in all_char:
-                char = '++'
+            if not image_tem:
+                continue
+            char1 = pytesseract.image_to_string(image_tem, config='--psm 10')
+            _, result, *_ = knn.findNearest(image_tem.reshape(1, -1).astype(numpy.float32), k=5)
+            char2 = all_char[int(result[0])]
+            if char1 not in all_char:
+                char1 = '++'
 
             file_name = random.randint(0, 10000)
-            file_path = train_save_path + char + '\\' + str(file_name) + '.jpg'
+            if char1 != char2:
+                file_path = train_save_path + str(file_name) + '.jpg'
+            else:
+                file_path = train_save_path + char1 + '\\' + str(file_name) + '.jpg'
+
             while os.path.exists(file_path):
                 file_name = random.randint(0, 1000)
-                file_path = train_save_path + char + '\\' + str(file_name) + '.jpg'
+                file_path = train_save_path + char1 + '\\' + str(file_name) + '.jpg'
 
             cv2.imwrite(file_path, image_tem)
 
@@ -98,19 +117,28 @@ def get_train_yzm(repeat_num):
 
 def pre_train():
     """将准备好的图片训练集做一次整理，并将结果写到train.npz"""
-    train = numpy.empty((0, 300))
-    train_labels = numpy.empty((0, 9))
+    try:
+        with numpy.load(destination_path + 'train.npz') as data:
+            train = data['train']
+            train_labels = data['train_labels']
+    except:
+        train = numpy.empty((0, 300))
+        train_labels = numpy.empty((0, 9))
+
     train.dtype == numpy.float32
     train_labels.dtype == numpy.int
 
     for i in all_char:
-        all_file = os.listdir(destination_path + str(i))
+        try:
+            all_file = os.listdir(train_save_path + str(i))
+        except FileNotFoundError:
+            break
         label = numpy.zeros([1, 9])
         label[0, all_char.index(i)] = 1
         train_labels = numpy.append(train_labels, numpy.repeat(label.astype(int), len(all_file), axis=0), axis=0) \
             .astype(numpy.int)
         for j in all_file:
-            img = cv2.imread(destination_path + str(i) + '\\' + j, flags=cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread(train_save_path + str(i) + '\\' + j, flags=cv2.IMREAD_GRAYSCALE)
             train = numpy.append(train, img.reshape((1, -1)).astype(numpy.int), 0).astype(numpy.float32)
 
     # 保存已经处理好的训练集
@@ -128,17 +156,6 @@ if __name__ == '__main__':
 
     get_train_yzm(1000)
 
-    for i in all_char:
-        s_path = train_save_path + i
-        d_path = destination_path + i
-        count = 0
-        for j in os.listdir(d_path):
-            os.rename(d_path + '\\' + j, d_path + '\\' + '{:0>5}'.format(count) + '.jpg')
-            count += 1
-        for k in os.listdir(s_path):
-            shutil.move(s_path + '\\' + k, d_path + '\\' + '{:0>5}'.format(count) + '.jpg')
-            count += 1
-        os.removedirs(s_path)
-    os.removedirs(train_save_path)
-
+    input('请手动处理无法识别的图片')
     pre_train()
+    shutil.rmtree(train_save_path[:-1])
