@@ -79,9 +79,9 @@ def get_yzm():
 
 
 def get_train_yzm(repeat_num):
-    """用来爬取验证码图片，分割，用ocr识别并标记"""
+    """用来爬取验证码图片，分割，用ocr/knn识别并标记"""
     knn = cv2.ml.KNearest_create()
-    with numpy.load(destination_path + 'basic.npz') as data:
+    with numpy.load(destination_path + 'basic_knn.npz') as data:
         train = data['train']
         train_labels = data['train_labels']
     knn.train(train, cv2.ml.ROW_SAMPLE, train_labels)
@@ -92,8 +92,6 @@ def get_train_yzm(repeat_num):
 
     for i in range(repeat_num):
         for image_tem in get_yzm():
-            if not image_tem:
-                continue
             char1 = pytesseract.image_to_string(image_tem, config='--psm 10')
             _, result, *_ = knn.findNearest(image_tem.reshape(1, -1).astype(numpy.float32), k=5)
             char2 = all_char[int(result[0])]
@@ -141,8 +139,12 @@ def pre_train():
             img = cv2.imread(train_save_path + str(i) + '\\' + j, flags=cv2.IMREAD_GRAYSCALE)
             train = numpy.append(train, img.reshape((1, -1)).astype(numpy.int), 0).astype(numpy.float32)
 
+    # 打乱训练集
+    permu = list(numpy.random.permutation(len(train)))
+    train_shuffled = train[permu]
+    train_labels_shuffled = train_labels[permu]
     # 保存已经处理好的训练集
-    numpy.savez(destination_path + 'train.npz', train=train, train_labels=train_labels)
+    numpy.savez(destination_path + 'train.npz', train=train_shuffled, train_labels=train_labels_shuffled)
 
 
 if __name__ == '__main__':
@@ -154,7 +156,7 @@ if __name__ == '__main__':
 
     all_char = ['1', '2', '3', '4', '5', '6', '7', '+', '++']
 
-    get_train_yzm(1000)
+    get_train_yzm(10)
 
     input('请手动处理无法识别的图片')
     pre_train()

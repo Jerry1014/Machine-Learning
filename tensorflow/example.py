@@ -65,24 +65,29 @@ y_pred_cls = tf.argmax(y_pred, dimension=1)
 cross_entropy = tf.reduce_mean(
     tf.nn.softmax_cross_entropy_with_logits(labels=y_true, logits=y_pred))
 optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+tf.summary.scalar('cross_entropy', cross_entropy)
 
 # Performance Measures
 correct_prediction = tf.equal(y_pred_cls, y_true_cls)
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+tf.summary.scalar('accuracy', accuracy)
 
+merged = tf.summary.merge_all()
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    train_batch_size = 50
+    train_batch_size = 25
     test_batch_size = 100
 
     start = 1
     while start != 0:
-        for i in range(1000):
+        for i in range(2000):
+            writer = tf.summary.FileWriter('D:\\tem\\example\\logs')
             x_batch, y_true_batch = data.train.next_batch(train_batch_size)
             feed_dict_train_op = {x: x_batch, y_true: y_true_batch, keep_prob: 0.5}
-            sess.run(optimizer, feed_dict=feed_dict_train_op)
+            _, summary = sess.run([optimizer, merged], feed_dict=feed_dict_train_op)
+            writer.add_summary(summary, i)
 
-            print("test accuracy %g" % accuracy.eval(feed_dict={
+            print(i, "test accuracy %g" % accuracy.eval(feed_dict={
                 x: data.test.images[:100], y_true: data.test.labels[:100], keep_prob: 1.0}))
 
         print("test accuracy %g" % accuracy.eval(feed_dict={
