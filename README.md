@@ -26,4 +26,4 @@
 
 ## get_yzm
 - 用以批量下载验证码作为训练/测试集
-- 被aao_knn, cheak调用
+- 被aao_knn, cheak调用 
