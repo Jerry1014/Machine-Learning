@@ -114,4 +114,4 @@ with tf.Session() as sess:
         #                                                                     y: data.test.labels[:100],
         #                                                                     keep_prob: 1.0})))
     train_writer.close()
-    saver.save(sess, 'models/aao_cnn_model')
+    saver.save(sess, train_save_path + 'aao_cnn_model')
