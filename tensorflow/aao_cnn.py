@@ -96,6 +96,8 @@ with tf.Session() as sess:
     saver = tf.train.Saver(max_to_keep=1)
 
     sess.run(tf.global_variables_initializer())
+    early_stopping_count = 10
+    best_test_accuracy = 0.0
     for i in range(repeat_time):
         # train_images, train_labels = data.train.next_batch(train_batch_size)
         start = random.randint(0, len(train_images) - train_batch_size)
@@ -105,13 +107,20 @@ with tf.Session() as sess:
                                                keep_prob: 0.5})
         train_writer.add_summary(summary_train, i)
 
-        print(i, '/', repeat_time,
-              'The accuracy is {:.2g}'.format(sess.run(accuracy, feed_dict={x: train_images,
-                                                                            y: train_labels,
-                                                                            keep_prob: 1.0})))
+        test_accuracy = sess.run(accuracy, feed_dict={x: train_images, y: train_labels, keep_prob: 1.0})
+        print(i, '/', repeat_time, 'The accuracy is {:.2g}'.format(test_accuracy))
+
+        if test_accuracy > best_test_accuracy:
+            best_test_accuracy = test_accuracy
+            early_stopping_count = 10
+        else:
+            early_stopping_count -= 1
+            if early_stopping_count <= 0:
+                print('At {}, there is an early stopping.'.format(i))
+                break
         # print(i, '/', repeat_time,
         #       'The accuracy is {:.2g}'.format(sess.run(accuracy, feed_dict={x: data.test.images[:100],
         #                                                                     y: data.test.labels[:100],
         #                                                                     keep_prob: 1.0})))
     train_writer.close()
-    saver.save(sess, train_save_path + 'aao_cnn_model')
+    saver.save(sess, train_save_path + 'models\\aao_cnn_model')
