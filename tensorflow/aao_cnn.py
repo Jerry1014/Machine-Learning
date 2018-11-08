@@ -3,12 +3,13 @@ import random
 import numpy
 import tensorflow as tf
 
+
 # 超参数
-train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'
-all_char = ['1', '2', '3', '4', '5', '6', '7', '+', '++']
+train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
 train_batch_size = 25
 repeat_time = 100
 
+# 导入训练集
 with numpy.load(train_save_path + 'train.npz') as data:
     train_images = data['train']
     train_labels = data['train_labels']
@@ -92,32 +93,38 @@ with tf.name_scope('train'):
 
 merged = tf.summary.merge_all()
 with tf.Session() as sess:
-    train_writer = tf.summary.FileWriter(train_save_path + 'logs', graph=sess.graph)
-    saver = tf.train.Saver(max_to_keep=1)
+    with tf.device("/gpu:1"):
+        # 用以保存的对象和全局变量初始化
+        train_writer = tf.summary.FileWriter(train_save_path + 'logs', graph=sess.graph)
+        saver = tf.train.Saver(max_to_keep=1)
+        sess.run(tf.global_variables_initializer())
 
-    sess.run(tf.global_variables_initializer())
-    early_stopping_count = 10
-    best_test_accuracy = 0.0
-    for i in range(repeat_time):
-        # train_images, train_labels = data.train.next_batch(train_batch_size)
-        start = random.randint(0, len(train_images) - train_batch_size)
-        _, summary_train = sess.run([optimizer, merged],
-                                    feed_dict={x: train_images[start:start + train_batch_size],
-                                               y: train_labels[start:start + train_batch_size],
-                                               keep_prob: 0.5})
-        train_writer.add_summary(summary_train, i)
+        # 提前退出标记
+        early_stopping_count = 10
+        best_test_accuracy = 0.0
+        for i in range(repeat_time):
+            # train_images, train_labels = data.train.next_batch(train_batch_size)
+            # 随机选取一个batch
+            start = random.randint(0, len(train_images) - train_batch_size)
+            _, summary_train = sess.run([optimizer, merged],
+                                        feed_dict={x: train_images[start:start + train_batch_size],
+                                                   y: train_labels[start:start + train_batch_size],
+                                                   keep_prob: 0.5})
+            train_writer.add_summary(summary_train, i)
 
-        test_accuracy = sess.run(accuracy, feed_dict={x: train_images, y: train_labels, keep_prob: 1.0})
-        print(i, '/', repeat_time, 'The accuracy is {:.2g}'.format(test_accuracy))
+            # 测试训练后的正确率
+            test_accuracy = sess.run(accuracy, feed_dict={x: train_images, y: train_labels, keep_prob: 1.0})
+            print(i, '/', repeat_time, 'The accuracy is {:.2g}'.format(test_accuracy))
 
-        if test_accuracy > best_test_accuracy:
-            best_test_accuracy = test_accuracy
-            early_stopping_count = 10
-        else:
-            early_stopping_count -= 1
-            if early_stopping_count <= 0:
-                print('At {}, there is an early stopping.'.format(i))
-                break
+            # 提前推出判断，防止过拟合
+            if test_accuracy > best_test_accuracy:
+                best_test_accuracy = test_accuracy
+                early_stopping_count = 10
+            else:
+                early_stopping_count -= 1
+                if early_stopping_count <= 0:
+                    print('At {}, there is an early stopping.'.format(i))
+                    break
         # print(i, '/', repeat_time,
         #       'The accuracy is {:.2g}'.format(sess.run(accuracy, feed_dict={x: data.test.images[:100],
         #                                                                     y: data.test.labels[:100],

@@ -10,7 +10,12 @@ import requests
 
 
 def interference_point(x_s, y_s, img):
-    """点降噪"""
+    """
+    点降噪
+    :param x_s: 图片的高
+    :param y_s: 图片的宽
+    :param img: 单通道/三通道（使用最大值，按单通道处理）的图片
+    """
     height, width = img.shape[:2]
 
     for y in range(y_s, width - 1):
@@ -31,8 +36,10 @@ def interference_point(x_s, y_s, img):
 
 
 def get_yzm():
-
-    """请求验证码"""
+    """
+    请求验证码，并灰度二值去噪处理
+    :return :切割后的验证码图片，num */+ num，一共三张（‘=’被抛弃）
+    """
     try:
         yzm = requests.get("https://zhjw.neu.edu.cn/ACTIONVALIDATERANDOMPICTURE.APPPROCESS")
     except:
