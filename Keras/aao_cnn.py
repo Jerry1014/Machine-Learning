@@ -16,7 +16,7 @@ model.add(Reshape(target_shape=(20, 15, 1), input_shape=(300,)))
 model.add(Conv2D(16, kernel_size=(3, 3), activation='relu', use_bias=True))
 model.add(MaxPool2D(pool_size=(2, 2)))
 
-model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', use_bias=True))
+model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', use_bias=True))
 model.add(MaxPool2D(pool_size=(2, 2)))
 
 model.add(Flatten())
@@ -31,7 +31,7 @@ model.compile(loss='categorical_crossentropy',
               optimizer='Adadelta',
               metrics=['accuracy'])
 
-model.fit(numpy.reshape(train_images, newshape=[-1, 20, 15, 1]), train_labels,
+model.fit(train_images, train_labels,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,

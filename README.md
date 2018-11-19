@@ -11,7 +11,7 @@
     - 相对tensorflow版本，优化网络，减少训练时间
     - epoch为1时，在7219的训练集中达到1.0的正确率
 
-## tensorflow
+## TensorFlow
 - aao_cnn
     - 利用tensorflow实现cnn，对教务处的验证码进行识别，保存
 - example
