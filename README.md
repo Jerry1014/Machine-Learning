@@ -5,6 +5,12 @@
 - aao_knn
     - 训练knn模型(Class AaoKnn)，且能在训练后爬取新的验证码进行测试(test_knn(repeat_num))
 
+## Keras
+- aao_cnn
+    - 利用keras实现cnn，对教务处的验证码进行识别，保存
+    - 相对tensorflow版本，优化网络，减少训练时间
+    - epoch为1时，在7219的训练集中达到1.0的正确率
+
 ## tensorflow
 - aao_cnn
     - 利用tensorflow实现cnn，对教务处的验证码进行识别，保存
