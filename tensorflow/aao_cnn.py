@@ -77,10 +77,10 @@ with tf.name_scope('full-conncetion2'):
     # fc_b2 = new_biases([10])
     y_pre = tf.matmul(layer_fc1_drop, fc_w2) + fc_b2
 
-result = tf.argmax(y_pre, dimension=1, name='result')
+result = tf.argmax(y_pre, axis=1, name='result')
 
 with tf.name_scope('accurary'):
-    correct_prediction = tf.equal(result, tf.argmax(y, dimension=1))
+    correct_prediction = tf.equal(result, tf.argmax(y, axis=1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
     tf.summary.scalar('accuracy', accuracy)
 
