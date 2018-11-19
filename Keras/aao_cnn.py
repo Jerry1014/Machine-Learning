@@ -7,8 +7,8 @@ epochs = 1
 num_classes = 9
 train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
 with numpy.load(train_save_path + 'train.npz') as data:
-    train_images = data['train'][:5000]
-    train_labels = data['train_labels'][:5000]
+    train_images = data['train']
+    train_labels = data['train_labels']
     test_images = data['train'][5000:]
     test_labels = data['train_labels'][5000:]
 
@@ -35,8 +35,5 @@ model.compile(loss='categorical_crossentropy',
 model.fit(numpy.reshape(train_images, newshape=[-1, 20, 15, 1]), train_labels,
           batch_size=batch_size,
           epochs=epochs,
-          verbose=1)
-
-score = model.evaluate(numpy.reshape(test_images, newshape=[-1, 20, 15, 1]), test_labels, verbose=0)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
+          verbose=1,
+          validation_split=0.03)
