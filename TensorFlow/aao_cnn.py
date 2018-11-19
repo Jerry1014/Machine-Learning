@@ -1,13 +1,14 @@
 import random
 
 import numpy
+from time import time
 import tensorflow as tf
 
 
 # 超参数
 train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
 train_batch_size = 25
-repeat_time = 100
+repeat_time = 280
 
 # 导入训练集
 with numpy.load(train_save_path + 'train.npz') as data:
@@ -93,13 +94,14 @@ with tf.name_scope('train'):
 
 merged = tf.summary.merge_all()
 with tf.Session() as sess:
+    start_time = time()
     # 用以保存的对象和全局变量初始化
     train_writer = tf.summary.FileWriter(train_save_path + 'logs', graph=sess.graph)
     saver = tf.train.Saver(max_to_keep=1)
     sess.run(tf.global_variables_initializer())
 
     # 提前退出标记
-    early_stopping_count = 10
+    early_stopping_count = 20
     best_test_accuracy = 0.0
     for i in range(repeat_time):
         # train_images, train_labels = data.train.next_batch(train_batch_size)
@@ -118,7 +120,7 @@ with tf.Session() as sess:
         # 提前推出判断，防止过拟合
         if test_accuracy > best_test_accuracy:
             best_test_accuracy = test_accuracy
-            early_stopping_count = 10
+            early_stopping_count = 20
         else:
             early_stopping_count -= 1
             if early_stopping_count <= 0:
@@ -130,3 +132,8 @@ with tf.Session() as sess:
     #                                                                     keep_prob: 1.0})))
     train_writer.close()
     saver.save(sess, train_save_path + 'models\\aao_cnn_model')
+
+    # 测试训练后的正确率
+    test_accuracy = sess.run(accuracy, feed_dict={x: train_images, y: train_labels, keep_prob: 1.0})
+    print('The accuracy is {:.2g}'.format(test_accuracy))
+    print("The total time spent is %d s"%(time()-start_time))
