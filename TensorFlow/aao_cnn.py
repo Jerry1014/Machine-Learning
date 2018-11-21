@@ -49,6 +49,8 @@ with tf.name_scope('conv1'):
     c_b1 = new_biases([32])
     layer_conv1 = tf.nn.relu(conv2d(x_image, c_w1) + c_b1)
     layer_pool1 = max_pool_2x2(layer_conv1)
+    tf.summary.histogram('layer1/weights', c_w1)
+    tf.summary.histogram('layer1/biases', c_b1)
 
 with tf.name_scope('conv2'):
     # 卷积层池化层2
@@ -56,6 +58,8 @@ with tf.name_scope('conv2'):
     c_b2 = new_biases([64])
     layer_conv2 = tf.nn.relu(conv2d(layer_pool1, c_w2) + c_b2)
     layer_pool2 = max_pool_2x2(layer_conv2)
+    tf.summary.histogram('layer1/weights', c_w2)
+    tf.summary.histogram('layer1/biases', c_b2)
 
 with tf.name_scope('full-conncetion1'):
     # 全连接层1
@@ -66,6 +70,8 @@ with tf.name_scope('full-conncetion1'):
     # layer_pool1_flat = tf.reshape(layer_pool2, [-1, 7 * 7 * 64])
     layer_fc1 = tf.nn.relu(tf.matmul(layer_pool1_flat, fc_w1)) + fc_b1
     # layer_fc1 = tf.nn.relu(tf.matmul(layer_pool1_flat, fc_w1) + fc_b1)
+    tf.summary.histogram('layer1/weights', fc_w1)
+    tf.summary.histogram('layer1/biases', fc_b1)
 
 keep_prob = tf.placeholder(tf.float32, name='keep_prop')
 layer_fc1_drop = tf.nn.dropout(layer_fc1, keep_prob, name='dropout')
@@ -77,6 +83,8 @@ with tf.name_scope('full-conncetion2'):
     # fc_w2 = new_weights([1024, 10])
     # fc_b2 = new_biases([10])
     y_pre = tf.matmul(layer_fc1_drop, fc_w2) + fc_b2
+    tf.summary.histogram('layer1/weights', fc_w2)
+    tf.summary.histogram('layer1/biases', fc_b2)
 
 result = tf.argmax(y_pre, axis=1, name='result')
 

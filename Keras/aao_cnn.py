@@ -2,7 +2,7 @@ import keras
 import numpy
 from keras.layers import Conv2D, Flatten, MaxPool2D, Dense, Dropout, Reshape
 
-batch_size = 15
+batch_size = 20
 epochs = 1
 num_classes = 9
 train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
@@ -13,7 +13,7 @@ with numpy.load(train_save_path + 'train.npz') as data:
 model = keras.models.Sequential()
 
 model.add(Reshape(target_shape=(20, 15, 1), input_shape=(300,)))
-model.add(Conv2D(16, kernel_size=(3, 3), activation='relu', use_bias=True))
+model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', use_bias=True))
 model.add(MaxPool2D(pool_size=(2, 2)))
 
 model.add(Conv2D(64, kernel_size=(3, 3), activation='relu', use_bias=True))
