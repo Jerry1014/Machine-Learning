@@ -109,7 +109,7 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
     # 提前退出标记
-    early_stopping_count = 20
+    early_stopping_count = 10
     best_test_accuracy = 0.0
     for i in range(repeat_time):
         # train_images, train_labels = data.train.next_batch(train_batch_size)
@@ -128,8 +128,8 @@ with tf.Session() as sess:
         # 提前推出判断，防止过拟合
         if test_accuracy > best_test_accuracy:
             best_test_accuracy = test_accuracy
-            early_stopping_count = 20
-        else:
+            early_stopping_count = 10
+        elif test_accuracy - 0.9 > 0:
             early_stopping_count -= 1
             if early_stopping_count <= 0:
                 print('At {}, there is an early stopping.'.format(i))

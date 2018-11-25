@@ -5,8 +5,8 @@ import tensorflow
 
 # 超参数
 train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
-train_batch_size = 25
-repeat_time = 1000
+train_batch_size = 128
+repeat_time = 100
 n_inputs = 20  # data input (img shape: 20*15)
 n_steps = 15  # time steps
 n_hidden_units = 2048  # neurons in hidden layer
@@ -98,7 +98,7 @@ with tensorflow.Session() as sess:
         if test_accuracy > best_test_accuracy:
             best_test_accuracy = test_accuracy
             early_stopping_count = 20
-        elif test_accuracy - 0.95 > 0:
+        elif test_accuracy - 0.9 > 0:
             early_stopping_count -= 1
             if early_stopping_count <= 0:
                 print('At {}, there is an early stopping.'.format(i))
