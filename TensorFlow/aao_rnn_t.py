@@ -9,7 +9,7 @@ train_batch_size = 25
 repeat_time = 1000
 n_inputs = 20  # data input (img shape: 20*15)
 n_steps = 15  # time steps
-n_hidden_units = 1024  # neurons in hidden layer
+n_hidden_units = 2048  # neurons in hidden layer
 n_classes = 9  # classes
 
 # 导入训练集
