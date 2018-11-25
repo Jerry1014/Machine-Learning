@@ -9,7 +9,7 @@ train_batch_size = 128
 repeat_time = 100
 n_inputs = 20  # data input (img shape: 20*15)
 n_steps = 15  # time steps
-n_hidden_units = 2048  # neurons in hidden layer
+n_hidden_units = 128  # neurons in hidden layer
 n_classes = 9  # classes
 
 # 导入训练集
@@ -94,7 +94,7 @@ with tensorflow.Session() as sess:
                                                       y: test_labels[test_start:test_start + train_batch_size]})
 
         print('At {}, the accuracy is {:.2f}, the cost is {:.2f}'.format(i, test_accuracy, test_cost))
-        # 提前推出判断，防止过拟合
+        # 提前退出判断，防止过拟合
         if test_accuracy > best_test_accuracy:
             best_test_accuracy = test_accuracy
             early_stopping_count = 20

@@ -125,7 +125,7 @@ with tf.Session() as sess:
         test_accuracy = sess.run(accuracy, feed_dict={x: train_images, y: train_labels, keep_prob: 1.0})
         print(i, '/', repeat_time, 'The accuracy is {:.2g}'.format(test_accuracy))
 
-        # 提前推出判断，防止过拟合
+        # 提前退出判断，防止过拟合
         if test_accuracy > best_test_accuracy:
             best_test_accuracy = test_accuracy
             early_stopping_count = 10
