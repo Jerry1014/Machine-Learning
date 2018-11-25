@@ -1,2 +1,2 @@
-model_checkpoint_path: "aao_cnn_model"
-all_model_checkpoint_paths: "aao_cnn_model"
+model_checkpoint_path: "C:\\Users\\Jerry\\PycharmProjects\\Machine-Learning\\train\\\\models\\aao_cnn_model"
+all_model_checkpoint_paths: "C:\\Users\\Jerry\\PycharmProjects\\Machine-Learning\\train\\\\models\\aao_cnn_model"
