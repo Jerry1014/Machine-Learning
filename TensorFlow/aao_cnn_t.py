@@ -110,7 +110,7 @@ with tf.Session() as sess:
 
     # 提前退出标记
     early_stopping_count = 10
-    best_test_accuracy = 0.0
+    last_test_accuracy = 0.0
     for i in range(repeat_time):
         # train_images, train_labels = data.train.next_batch(train_batch_size)
         # 随机选取一个batch
@@ -126,14 +126,15 @@ with tf.Session() as sess:
         print(i, '/', repeat_time, 'The accuracy is {:.2g}'.format(test_accuracy))
 
         # 提前退出判断，防止过拟合
-        if test_accuracy > best_test_accuracy:
-            best_test_accuracy = test_accuracy
+        if test_accuracy > last_test_accuracy:
             early_stopping_count = 10
         else:
             early_stopping_count -= 1
             if early_stopping_count <= 0:
                 print('At {}, there is an early stopping.'.format(i))
                 break
+        last_test_accuracy = test_accuracy
+
     # print(i, '/', repeat_time,
     #       'The accuracy is {:.2g}'.format(sess.run(accuracy, feed_dict={x: data.test.images[:100],
     #                                                                     y: data.test.labels[:100],
