@@ -129,7 +129,7 @@ with tf.Session() as sess:
         if test_accuracy > best_test_accuracy:
             best_test_accuracy = test_accuracy
             early_stopping_count = 10
-        elif test_accuracy - 0.9 > 0:
+        else:
             early_stopping_count -= 1
             if early_stopping_count <= 0:
                 print('At {}, there is an early stopping.'.format(i))
