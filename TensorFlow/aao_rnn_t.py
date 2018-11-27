@@ -9,9 +9,8 @@ TIMESTAMP = "{0:%Y-%m-%dT%H-%M-%S}".format(datetime.now())
 # 超参数
 lr = 0.0001
 train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
-train_batch_size = 20
-test_batch_size = 200
-repeat_time = 2000
+batch_size = 20
+repeat_time = 3000
 n_inputs = 20  # data input (img shape: 20*15)
 n_steps = 15  # time steps
 n_hidden_units = 512
@@ -45,6 +44,7 @@ tensorflow.summary.histogram('RNN/out/biases', biases['out'])
 x = tensorflow.placeholder(tensorflow.float32, [None, 300])
 x_reshape = tensorflow.reshape(x, [-1, n_inputs])
 y = tensorflow.placeholder(tensorflow.float32, [None, n_classes])
+b_size = tensorflow.placeholder(tensorflow.int32, [None, 1])
 
 
 def rnn(inputs):
@@ -56,7 +56,7 @@ def rnn(inputs):
 
         lstm_cell = tensorflow.contrib.rnn.BasicLSTMCell(n_hidden_units, forget_bias=1.0, state_is_tuple=True)
         # 初始化全零 state
-        init_state = lstm_cell.zero_state(train_batch_size, dtype=tensorflow.float32)
+        init_state = lstm_cell.zero_state(batch_size, dtype=tensorflow.float32)
 
         outputs, final_state = tensorflow.nn.dynamic_rnn(lstm_cell, x_in, initial_state=init_state, time_major=False)
 
@@ -96,18 +96,18 @@ with tensorflow.Session() as sess:
     last_test_accuracy = 0.0
 
     for i in range(repeat_time):
-        start = random.randint(0, len(train_images) - train_batch_size)
-        _, summary_train = sess.run([train_op, merged], feed_dict={x: train_images[start:start + train_batch_size],
-                                                                   y: train_labels[start:start + train_batch_size],
+        start = random.randint(0, len(train_images) - batch_size)
+        _, summary_train = sess.run([train_op, merged], feed_dict={x: train_images[start:start + batch_size],
+                                                                   y: train_labels[start:start + batch_size],
                                                                    keep_prob: 0.5})
 
         train_writer_train.add_summary(summary_train, i)
 
-        test_start = random.randint(0, len(test_images) - test_batch_size)
+        test_start = random.randint(0, len(test_images) - batch_size)
         test_accuracy, test_cost, summary_train = sess.run([accuracy, cost, merged],
                                                            feed_dict={
-                                                               x: test_images[test_start:test_start + test_batch_size],
-                                                               y: test_labels[test_start:test_start + test_batch_size],
+                                                               x: test_images[test_start:test_start + batch_size],
+                                                               y: test_labels[test_start:test_start + batch_size],
                                                                keep_prob: 1.0})
         train_writer_test.add_summary(summary_train, i)
 
