@@ -11,8 +11,8 @@ lr = 0.0001
 train_save_path = r'C:\Users\Jerry\PycharmProjects\Machine-Learning\train\\'  # 训练后的日志模型保存目录
 batch_size = 20
 repeat_time = 3000
-n_inputs = 20  # data input (img shape: 20*15)
-n_steps = 15  # time steps
+n_inputs = 15  # data input (img shape: 20*15)
+n_steps = 20  # time steps
 n_hidden_units = 512
 n_middle_units = 128
 n_classes = 9  # classes
@@ -44,7 +44,6 @@ tensorflow.summary.histogram('RNN/out/biases', biases['out'])
 x = tensorflow.placeholder(tensorflow.float32, [None, 300])
 x_reshape = tensorflow.reshape(x, [-1, n_inputs])
 y = tensorflow.placeholder(tensorflow.float32, [None, n_classes])
-b_size = tensorflow.placeholder(tensorflow.int32, [None, 1])
 
 
 def rnn(inputs):
