@@ -1,6 +1,9 @@
 # Machine-Learning
 利用教务处网站的验证码做训练集，进行简单的机器学习实验
 
+# 太监前预告
+    教务处网站换成了统一平台，计划转战微博，下一步尝试微博的验证码识别和自动点赞
+
 ## KNN
 - aao_knn
     - 训练knn模型(Class AaoKnn)，且能在训练后爬取新的验证码进行测试(test_knn(repeat_num))
